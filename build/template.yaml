@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: AWS / SNS / Lambda POC
+Resources:
+  Lambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../artifacts/Lambda.zip
+      Handler: Lambda::Lambda.Function::Handler
+      Runtime: dotnetcore2.0
+      Environment:
+        Variables:
+      Events:
+        PostEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: post

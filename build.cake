@@ -1,3 +1,5 @@
+// Credit: https://github.com/joaoasrosa/aws-sam-local-blog
+
 #addin nuget:?package=Cake.Docker&version=0.9.3
 
 ///////////////////////////////////////////////////////////////////////////////

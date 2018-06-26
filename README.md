@@ -20,3 +20,11 @@ To validate the idea, we have composed the following acceptance criteria.
 [ ] We can test an AWS Lambda function 
 [ ] We can test the integration of the SNS topic and Lambda function 
 [ ] We can re-queue messages from the deadletter queue to the SNS topic 
+
+# Steps
+
+```
+powershell
+.\build.ps1 -Target=Package
+sam local start-api
+```

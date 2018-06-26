@@ -14,7 +14,7 @@ When a message gets routed/enqueued from the deadletter to the operational queue
 
 To validate the idea, we have composed the following acceptance criteria.
 
-- [ ] It is possible to develop the AWS function 
+- [ ] It is possible to develop the AWS function locally
 - [ ] A failed Lambda function puts the SNS message on a deadletter queue
 - [ ] We can trigger a Lambda function by publishing a message to an SNS topic
 - [ ] We can test an AWS Lambda function 

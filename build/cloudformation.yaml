@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Private resources for the restocking-accepted-proposals application
+Parameters:
+  AppGroup:
+    Type: String
+    Default: restocking-accepted-proposals
+  Environment:
+    Type: String
+    AllowedValues:
+      - development
+      - testing
+      - acceptance
+      - production
+    Default: development
+    ConstraintDescription: Must be one of the values from the list.
+    Description: Environment in which resources are deployed.
+  KeyPair:
+    Description: Amazon EC2 Key Pair
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  Region:
+    Description: Specify the region
+    Type: String
+    Default: eu-west-1
+    AllowedValues:
+      - eu-west-1
+Resources:
+  PrivateSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Allowed incoming/outgoing traffic to/from the internal resources
+      VpcId: !ImportValue infrastructure-vpc
+      SecurityGroupEgress:
+        - Description: >-
+            Remove default egress rule that allows egress traffic on all ports
+            and IP protocols to any location
+          CidrIp: 127.0.0.1/32
+          IpProtocol: '-1'
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-${AppGroup}-private'
+        - Key: AppGroup
+          Value: !Ref AppGroup
+        - Key: AppRole
+          Value: security-group
+        - Key: Environment
+          Value: !Ref Environment
+  SQSDeadLetterQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      DelaySeconds: 0
+      QueueName: !Sub '${Environment}-private-${AppGroup}-deadletter'
+      ReceiveMessageWaitTimeSeconds: 20
+      MaximumMessageSize: 262144
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 30
+  SQSQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      DelaySeconds: 0
+      QueueName: !Sub '${Environment}-private-${AppGroup}'
+      ReceiveMessageWaitTimeSeconds: 20
+      MaximumMessageSize: 262144
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 30
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt 
+          - SQSDeadLetterQueue
+          - Arn
+        maxReceiveCount: 5
+AWSTemplateFormatVersion: 2010-09-09
+Description: Private resources for the restocking-accepted-proposals application
+Parameters:
+  AppGroup:
+    Type: String
+    Default: restocking-accepted-proposals
+  Environment:
+    Type: String
+    AllowedValues:
+      - development
+      - testing
+      - acceptance
+      - production
+    Default: development
+    ConstraintDescription: Must be one of the values from the list.
+    Description: Environment in which resources are deployed.
+  KeyPair:
+    Description: Amazon EC2 Key Pair
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  Region:
+    Description: Specify the region
+    Type: String
+    Default: eu-west-1
+    AllowedValues:
+      - eu-west-1
+Resources:
+  PrivateSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Allowed incoming/outgoing traffic to/from the internal resources
+      VpcId: !ImportValue infrastructure-vpc
+      SecurityGroupEgress:
+        - Description: >-
+            Remove default egress rule that allows egress traffic on all ports
+            and IP protocols to any location
+          CidrIp: 127.0.0.1/32
+          IpProtocol: '-1'
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-${AppGroup}-private'
+        - Key: AppGroup
+          Value: !Ref AppGroup
+        - Key: AppRole
+          Value: security-group
+        - Key: Environment
+          Value: !Ref Environment
+  SQSDeadLetterQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      DelaySeconds: 0
+      QueueName: !Sub '${Environment}-private-${AppGroup}-deadletter'
+      ReceiveMessageWaitTimeSeconds: 20
+      MaximumMessageSize: 262144
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 30
+  SQSQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      DelaySeconds: 0
+      QueueName: !Sub '${Environment}-private-${AppGroup}'
+      ReceiveMessageWaitTimeSeconds: 20
+      MaximumMessageSize: 262144
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 30
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt 
+          - SQSDeadLetterQueue
+          - Arn
+        maxReceiveCount: 5
+  restockingacceptedproposalsdevlambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: 'Lambda::Lambda.Lambda::Handler'
+      Runtime: dotnetcore2.0
+      CodeUri : "s3://<my-bucket>/<my-file>"
+      Description: ''
+      MemorySize: 512
+      Timeout: 15
+      Role: 'arn:aws:iam::196441879050:role/restocking-accepted-proposals-dev-role' 
+      Events:
+        SQS1:
+          Type: SQS
+          Properties:
+            Queue:
+              'Fn::GetAtt':
+                - SQSQueue
+                - Arn
+            BatchSize: 10
+      Tracing: Active
+  GreetingStreamEventSource:
+    Type: 'AWS::Lambda::EventSourceMapping'
+    Properties:
+      FunctionName: !Ref restockingacceptedproposalsdevlambda
+      Enabled: true
+      EventSourceArn: !GetAtt 
+        - SQSQueue
+        - Arn

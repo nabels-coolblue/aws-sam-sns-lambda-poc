@@ -1,7 +1,8 @@
 using System;
+using System.Data.Common;
 using System.Net;
 using System.Net.Http;
-using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.Core;
 using Newtonsoft.Json;
 
@@ -10,26 +11,17 @@ using Newtonsoft.Json;
 
 namespace Lambda
 {
-    public class Function
+    public class Lambda
     {
-        public APIGatewayProxyResponse Handler(
-            APIGatewayProxyRequest request,
-            ILambdaContext context)
+        private static readonly HttpClient _httpClient = new HttpClient();
+        public string Handler(SQSEvent sqsEvent)
         {
-            try
-            {
-                return new APIGatewayProxyResponse
+                foreach (var record in sqsEvent.Records)
                 {
-                    StatusCode = (int) HttpStatusCode.OK
-                };
-            }
-            catch (Exception)
-            {
-                return new APIGatewayProxyResponse()
-                       {
-                           StatusCode = (int)HttpStatusCode.InternalServerError
-                       };    
-            }
+                    Console.WriteLine(JsonConvert.SerializeObject(record));
+                }
+
+            throw new Exception("Something bad happened :(");
         }
     }
 }

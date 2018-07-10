@@ -6,21 +6,19 @@ This is a proof of concept. It tries to put into practice the following idea. Wh
 
 When the function returns successfully, we expect the message in the SNS topic to be de-queued.
 
-When the function fails, we expect it to fail a maximum of three times, after which the message should be de-queued, and routed/enqueued to a deadletter queue.
-
-When a message gets routed/enqueued from the deadletter to the operational queue, we expect to be able to retry the process.
+When the function fails, we expect it to fail a maximum of three times, after which the message should be routed to a deadletter queue. After that, we expect to be able to re-queue the message manually.
 
 # Todo
 
 To validate the idea, we have composed the following acceptance criteria.
 
 - [X] It is possible to develop the AWS function locally
-- [ ] It is possible to hook the local AWS function up to an SNS queue 
-- [ ] A failed Lambda function puts the SNS message on a deadletter queue
-- [ ] We can trigger a Lambda function by publishing a message to an SNS topic
-- [ ] We can test an AWS Lambda function 
-- [ ] We can test the integration of the SNS topic and Lambda function 
-- [ ] We can re-queue messages from the deadletter queue to the SNS topic 
+- [X] It is possible to hook the local AWS function up to an SQS queue 
+- [X] A failed Lambda function puts the SQS message on a deadletter queue
+- [X] We can trigger a Lambda function by publishing a message to an SQS queue
+- [X] We can test an AWS Lambda function 
+- [X] We can test the integration of the SNS topic and Lambda function 
+- [X] We can re-queue messages from the deadletter queue to the SNS topic 
 
 # Steps
 
@@ -59,5 +57,3 @@ aws lambda update-function-code --function-name niels-abels-aws-sns-to-http-lamb
 # Sending a test message
 
 aws sqs send-message --queue-url 	https://sqs.eu-west-1.amazonaws.com/196441879050/restocking-accepted-proposals-dev --message-body "hello, world"
-
-// Hardcode the environment to "Testing", since we want to run the acceptance tests for pull requests against the testing environment. Note: there is no environment variable we can use.
